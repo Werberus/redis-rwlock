@@ -20,15 +20,15 @@ type lockerImpl struct {
 	lockTTL     string
 }
 
-func (l *lockerImpl) Read(fn func()) error {
+func (l *lockerImpl) Read(fn func() error) error {
 	return l.do(fn, l.acquireReader, l.refreshReader, l.releaseReader)
 }
 
-func (l *lockerImpl) Write(fn func()) error {
+func (l *lockerImpl) Write(fn func() error) error {
 	return l.do(fn, l.acquireWriter, l.refreshWriter, l.releaseWriter)
 }
 
-func (l *lockerImpl) do(fn func(), acquire func() (bool, error), refresh func() (bool, error), release func() (bool, error)) error {
+func (l *lockerImpl) do(fn func() error, acquire func() (bool, error), refresh func() (bool, error), release func() (bool, error)) error {
 	if l.redisClient.Ping().Err() != nil {
 		return ErrConnection
 	}
@@ -58,7 +58,7 @@ func (l *lockerImpl) do(fn func(), acquire func() (bool, error), refresh func() 
 
 }
 
-func (l *lockerImpl) runFn(fn func()) (err error) {
+func (l *lockerImpl) runFn(fn func() error) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch t := r.(type) {
@@ -71,8 +71,8 @@ func (l *lockerImpl) runFn(fn func()) (err error) {
 			}
 		}
 	}()
-	fn()
-	return
+	err = fn()
+	return err
 }
 
 func (l *lockerImpl) execute(fn func() (bool, error), attempts int) (bool, error) {
@@ -99,7 +99,7 @@ func (l *lockerImpl) wait(d time.Duration) error {
 }
 
 func (l *lockerImpl) keepRefreshing(refresh func() (bool, error), stop chan struct{}) {
-	timeout := l.options.LockTTL / 2
+	timeout := l.options.LockTTL / 3
 	timer := time.NewTicker(timeout)
 	defer timer.Stop()
 
@@ -166,6 +166,7 @@ func (l *lockerImpl) refreshWriter() (bool, error) {
 }
 
 func (l *lockerImpl) execScript(script *redis.Script, keys []string, args ...interface{}) (bool, error) {
+	//fmt.Println(time.Now(), script, keys, args)
 	status, err := script.Run(l.redisClient, keys, args...).Result()
 	if err != nil {
 		return false, err

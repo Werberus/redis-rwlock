@@ -25,9 +25,9 @@ var (
 // Locker allows to execute given functions at reader or writer access privilege.
 type Locker interface {
 	// Read executes given function with shared reader access.
-	Read(fn func()) error
+	Read(fn func() error) error
 	// Write executes given function with unique writer access.
-	Write(fn func()) error
+	Write(fn func() error) error
 }
 
 // New instance of RW-Locker.
