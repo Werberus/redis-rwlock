@@ -20,7 +20,7 @@ const readLockScript = `
 if ARGV[3] ~= 0 and redis.call("EXISTS", KEYS[3]) == 1 then
 	return 0
 else
-	if redis.call("INCR", KEYS[2]) == 1  then
+	if redis.call("INCR", KEYS[2]) > 0 then
 		if redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2], "NX") then
             return 1
         else
