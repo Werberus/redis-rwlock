@@ -1,4 +1,4 @@
-module github.com/e-chip/redis-rwlock
+module github.com/werberus/redis-rwlock
 
 go 1.13
 
