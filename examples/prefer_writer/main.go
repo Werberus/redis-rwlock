@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	rwlock "github.com/e-chip/redis-rwlock"
 	"github.com/go-redis/redis"
+	rwlock "github.com/werberus/redis-rwlock"
 )
 
 const (
@@ -26,11 +26,12 @@ func (e *example) WriteSharedData(sharedData *int) {
 	e.wg.Add(1)
 	go func() {
 		for i := 0; i < writeIterations; i++ {
-			err := e.locker.Write(func() {
+			err := e.locker.Write(func() error {
 				fmt.Printf("Writing...\n")
 				time.Sleep(writeDuration)
 				(*sharedData)++
 				fmt.Printf("Write: %d\n", *sharedData)
+				return nil
 			})
 			if err != nil {
 				fmt.Printf("Writing error: %v\n", err)
@@ -51,8 +52,9 @@ func (e *example) ReadSharedData(sharedData *int) {
 				e.wg.Done()
 				return
 			default:
-				err := e.locker.Read(func() {
+				err := e.locker.Read(func() error {
 					fmt.Printf("Read: %d\n", *sharedData)
+					return nil
 				})
 				if err != nil {
 					fmt.Printf("Read error: %v\n", err)
