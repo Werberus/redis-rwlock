@@ -28,6 +28,8 @@ type Locker interface {
 	Read(fn func() error) error
 	// Write executes given function with unique writer access.
 	Write(fn func() error) error
+
+	GetKeyLock() string
 }
 
 // New instance of RW-Locker.

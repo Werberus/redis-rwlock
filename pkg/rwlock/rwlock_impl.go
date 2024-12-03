@@ -28,6 +28,10 @@ func (l *lockerImpl) Write(fn func() error) error {
 	return l.do(fn, l.acquireWriter, l.refreshWriter, l.releaseWriter)
 }
 
+func (l *lockerImpl) GetKeyLock() string {
+	return l.keyGlobalLock
+}
+
 func (l *lockerImpl) do(fn func() error, acquire func() (bool, error), refresh func() (bool, error), release func() (bool, error)) error {
 	if l.redisClient.Ping().Err() != nil {
 		return ErrConnection
