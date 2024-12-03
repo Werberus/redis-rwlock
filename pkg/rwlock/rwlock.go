@@ -1,12 +1,13 @@
 package rwlock
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis"
 	"github.com/gofrs/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -34,9 +35,10 @@ type Locker interface {
 
 // New instance of RW-Locker.
 // keyLock, keyReadersCount, keyWriterIntent must be unique keys that will be used by locker implementation.
-func New(redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts Options) Locker {
+func New(ctx context.Context, redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts Options) Locker {
 	prepareOpts(&opts)
 	return &lockerImpl{
+		ctx:             ctx,
 		redisClient:     redisClient,
 		options:         opts,
 		keyGlobalLock:   keyLock,

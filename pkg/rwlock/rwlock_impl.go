@@ -1,14 +1,16 @@
 package rwlock
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 type lockerImpl struct {
+	ctx         context.Context
 	redisClient *redis.Client
 	options     Options
 
@@ -33,7 +35,7 @@ func (l *lockerImpl) GetKeyLock() string {
 }
 
 func (l *lockerImpl) do(fn func() error, acquire func() (bool, error), refresh func() (bool, error), release func() (bool, error)) error {
-	if l.redisClient.Ping().Err() != nil {
+	if l.redisClient.Ping(l.ctx).Err() != nil {
 		return ErrConnection
 	}
 	stopRefreshing := make(chan struct{})
@@ -171,7 +173,7 @@ func (l *lockerImpl) refreshWriter() (bool, error) {
 
 func (l *lockerImpl) execScript(script *redis.Script, keys []string, args ...interface{}) (bool, error) {
 	//fmt.Println(time.Now(), script, keys, args)
-	status, err := script.Run(l.redisClient, keys, args...).Result()
+	status, err := script.Run(l.ctx, l.redisClient, keys, args...).Result()
 	if err != nil {
 		return false, err
 	}
