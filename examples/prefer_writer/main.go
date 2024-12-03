@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	rwlock "github.com/werberus/redis-rwlock"
 )
 
@@ -77,7 +78,7 @@ func main() {
 			DB:      9,
 		})
 		example = example{
-			locker: rwlock.New(redisClient, "GLOBAL_LOCK", "READER_COUNT", "WRITER_INTENT", &rwlock.Options{}),
+			locker: rwlock.New(context.TODO(), redisClient, "GLOBAL_LOCK", "READER_COUNT", "WRITER_INTENT", &rwlock.Options{}),
 			doneC:  make(chan struct{}),
 		}
 	)

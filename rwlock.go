@@ -3,7 +3,9 @@
 package rwlock
 
 import (
-	"github.com/go-redis/redis"
+	"context"
+
+	"github.com/redis/go-redis/v9"
 	"github.com/werberus/redis-rwlock/pkg/rwlock"
 )
 
@@ -13,18 +15,11 @@ type Locker = rwlock.Locker
 // Options is an alias type to #rwlock.Options
 type Options = rwlock.Options
 
-// Make new instance of RW-Locker.
-// Deprecated due to incorrect naming of the function.
-// Use #rwlock.New instead.
-func Make(redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts *Options) Locker {
-	return New(redisClient, keyLock, keyReadersCount, keyWriterIntent, opts)
-}
-
 // New instance of RW-Locker.
 // Use #rwlock.New instead.
-func New(redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts *Options) Locker {
+func New(ctx context.Context, redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts *Options) Locker {
 	if opts == nil {
 		opts = &Options{}
 	}
-	return rwlock.New(redisClient, keyLock, keyReadersCount, keyWriterIntent, *opts)
+	return rwlock.New(ctx, redisClient, keyLock, keyReadersCount, keyWriterIntent, *opts)
 }
