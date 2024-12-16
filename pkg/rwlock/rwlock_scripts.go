@@ -18,16 +18,28 @@ var (
 // ARGV = [TOKEN, EXPIRATION_TIMEOUT, WRITER_PREFERRING]
 const readLockScript = `
 if ARGV[3] ~= 0 and redis.call("EXISTS", KEYS[3]) == 1 then
-	return 0
+    -- failed
+    return 0
 else
-	if redis.call("INCR", KEYS[2]) > 0 then
-		if redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2], "NX") then
+    -- increment ref counter. if first, acquire global lock.
+    if redis.call("INCR", KEYS[2]) > 0  then
+        -- acquire global lock
+        if redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2], "NX") then
+            -- global lock acquired. success
             return 1
         else
-            redis.call("DECR", KEYS[2])
-            return 0
+            if redis.call("GET", KEYS[1]) == ARGV[1] then
+                -- global lock acquired. success
+                return 1
+            else
+                -- global lock not acquired. decrement ref counter
+                redis.call("DECR", KEYS[2])
+                -- failed
+                return 0
+            end
         end
     else
+        -- global lock must be acquired by some other reader. success
         return 1
     end
 end`

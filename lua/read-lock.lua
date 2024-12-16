@@ -19,10 +19,15 @@ else
             -- global lock acquired. success
             return 1
         else
-            -- global lock not acquired. decrement ref counter
-            redis.call("DECR", KEYS[2])
-            -- failed
-            return 0
+            if redis.call("GET", KEYS[1]) == ARGV[1] then
+                -- global lock acquired. success
+                return 1
+            else
+                -- global lock not acquired. decrement ref counter
+                redis.call("DECR", KEYS[2])
+                -- failed
+                return 0
+            end
         end
     else
         -- global lock must be acquired by some other reader. success
