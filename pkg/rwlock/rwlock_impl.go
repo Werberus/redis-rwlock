@@ -35,7 +35,7 @@ func (l *lockerImpl) GetKeyLock() string {
 }
 
 func (l *lockerImpl) do(fn func() error, acquire func() (bool, error), refresh func() (bool, error), release func() (bool, error)) error {
-	if l.redisClient.Ping(l.ctx).Err() != nil {
+	if l.options.PingEnable && l.redisClient.Ping(l.ctx).Err() != nil {
 		return ErrConnection
 	}
 	stopRefreshing := make(chan struct{})

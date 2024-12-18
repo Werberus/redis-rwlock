@@ -40,6 +40,10 @@ type Options struct {
 	// Defaults to writer-preferring behavior in order not to break back compatibility.
 	// Default: ModePreferWriter
 	Mode Mode
+
+	// PingEnable enable ping radis before lock
+	// Default: false
+	PingEnable bool
 }
 
 // Mode of the lock behavior.
