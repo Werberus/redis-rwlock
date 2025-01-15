@@ -146,7 +146,7 @@ func (l *lockerImpl) releaseReader() (bool, error) {
 }
 
 func (l *lockerImpl) refreshReader() (bool, error) {
-	return l.execScript(refreshLock, []string{
+	return l.execScript(refreshReadLock, []string{
 		l.keyGlobalLock,
 	}, l.options.ReaderLockToken, l.lockTTL)
 }
