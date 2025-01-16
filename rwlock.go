@@ -17,7 +17,7 @@ type Options = rwlock.Options
 
 // New instance of RW-Locker.
 // Use #rwlock.New instead.
-func New(ctx context.Context, redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts *Options) Locker {
+func New(ctx context.Context, redisClient *redis.Client, keyLock []string, keyReadersCount, keyWriterIntent string, opts *Options) Locker {
 	if opts == nil {
 		opts = &Options{}
 	}

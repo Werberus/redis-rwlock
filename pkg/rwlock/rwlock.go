@@ -30,12 +30,12 @@ type Locker interface {
 	// Write executes given function with unique writer access.
 	Write(fn func() error) error
 
-	GetKeyLock() string
+	GetKeyLock() []string
 }
 
 // New instance of RW-Locker.
 // keyLock, keyReadersCount, keyWriterIntent must be unique keys that will be used by locker implementation.
-func New(ctx context.Context, redisClient *redis.Client, keyLock, keyReadersCount, keyWriterIntent string, opts Options) Locker {
+func New(ctx context.Context, redisClient *redis.Client, keyLock []string, keyReadersCount, keyWriterIntent string, opts Options) Locker {
 	prepareOpts(&opts)
 	return &lockerImpl{
 		ctx:             ctx,

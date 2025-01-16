@@ -14,7 +14,7 @@ type lockerImpl struct {
 	redisClient *redis.Client
 	options     Options
 
-	keyGlobalLock   string
+	keyGlobalLock   []string
 	keyReadersCount string
 	keyWriterIntent string
 
@@ -30,7 +30,7 @@ func (l *lockerImpl) Write(fn func() error) error {
 	return l.do(fn, l.acquireWriter, l.refreshWriter, l.releaseWriter)
 }
 
-func (l *lockerImpl) GetKeyLock() string {
+func (l *lockerImpl) GetKeyLock() []string {
 	return l.keyGlobalLock
 }
 
@@ -131,44 +131,33 @@ func (l *lockerImpl) acquireReader() (bool, error) {
 	default:
 		return false, ErrUnknownMode
 	}
-	return l.execScript(acquireReadLock, []string{
-		l.keyGlobalLock,
-		l.keyReadersCount,
-		l.keyWriterIntent,
-	}, l.options.ReaderLockToken, l.lockTTL, preferWriter)
+	return l.execScript(acquireReadLock, l.keyGlobalLock,
+		l.options.ReaderLockToken, l.lockTTL, preferWriter, l.keyReadersCount, l.keyWriterIntent)
 }
 
 func (l *lockerImpl) releaseReader() (bool, error) {
-	return l.execScript(releaseReadLock, []string{
-		l.keyGlobalLock,
-		l.keyReadersCount,
-	}, l.options.ReaderLockToken)
+	return l.execScript(releaseReadLock, l.keyGlobalLock,
+		l.options.ReaderLockToken, l.keyReadersCount)
 }
 
 func (l *lockerImpl) refreshReader() (bool, error) {
-	return l.execScript(refreshReadLock, []string{
-		l.keyGlobalLock,
-	}, l.options.ReaderLockToken, l.lockTTL)
+	return l.execScript(refreshReadLock, l.keyGlobalLock,
+		l.options.ReaderLockToken, l.lockTTL)
 }
 
 func (l *lockerImpl) acquireWriter() (bool, error) {
-	return l.execScript(acquireWriteLock, []string{
-		l.keyGlobalLock,
-		l.keyReadersCount,
-		l.keyWriterIntent,
-	}, l.writerToken, l.lockTTL)
+	return l.execScript(acquireWriteLock, l.keyGlobalLock,
+		l.writerToken, l.lockTTL, l.keyReadersCount, l.keyWriterIntent)
 }
 
 func (l *lockerImpl) releaseWriter() (bool, error) {
-	return l.execScript(releaseWriteLock, []string{
-		l.keyGlobalLock,
-	}, l.writerToken)
+	return l.execScript(releaseWriteLock, l.keyGlobalLock,
+		l.writerToken)
 }
 
 func (l *lockerImpl) refreshWriter() (bool, error) {
-	return l.execScript(refreshLock, []string{
-		l.keyGlobalLock,
-	}, l.writerToken, l.lockTTL)
+	return l.execScript(refreshLock, l.keyGlobalLock,
+		l.writerToken, l.lockTTL)
 }
 
 func (l *lockerImpl) execScript(script *redis.Script, keys []string, args ...interface{}) (bool, error) {
